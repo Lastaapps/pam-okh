@@ -2,11 +2,11 @@ use std::ffi::CStr;
 use std::thread::sleep;
 use std::time::Duration;
 
-use pam::{pam_hooks, pam_try};
-use pam::constants::{PAM_TEXT_INFO, PamFlag, PamResultCode};
 use pam::constants::PamResultCode::{PAM_AUTH_ERR, PAM_SUCCESS};
+use pam::constants::{PAM_TEXT_INFO, PamFlag, PamResultCode};
 use pam::conv::Conv;
 use pam::module::{PamHandle, PamHooks};
+use pam::{pam_hooks, pam_try};
 use rand::random;
 
 struct PamRandom;
@@ -18,15 +18,23 @@ impl PamHooks for PamRandom {
     }
 
     fn sm_authenticate(pamh: &mut PamHandle, args: Vec<&CStr>, _flags: PamFlag) -> PamResultCode {
-        let delay = pam_try!(args.get(0).map(|arg| -> Result<Duration, PamResultCode> {
-            Ok(Duration::from_millis(arg
-                .to_str()
-                .map_err(|_e| PAM_AUTH_ERR)?
-                .parse().map_err(|_e| PAM_AUTH_ERR)?))
-        }).unwrap_or(Ok(Duration::from_millis(0))));
+        let delay = pam_try!(
+            args.first()
+                .map(|arg| -> Result<Duration, PamResultCode> {
+                    Ok(Duration::from_millis(
+                        arg.to_str()
+                            .map_err(|_e| PAM_AUTH_ERR)?
+                            .parse()
+                            .map_err(|_e| PAM_AUTH_ERR)?,
+                    ))
+                })
+                .unwrap_or(Ok(Duration::from_millis(0)))
+        );
         let conv = match pamh.get_item::<Conv>() {
-            Ok(Some(conv)) => conv,
-            Ok(None) => todo!(),
+            Ok(res) => match res {
+                Some(conv) => conv,
+                _ => todo!(),
+            },
             Err(err) => {
                 println!("Couldn't get pam_conv");
                 return err;
