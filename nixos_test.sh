@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 FORCE=false
 TARGET=$HOST
 NIXOS_FLAKE_HOME="${HOME}/dotfiles"
@@ -28,6 +30,8 @@ else
 fi
 
 popd || exit
+
+set -x
 
 pamtester -v pam-okh "${USER}" authenticate
 

@@ -10,6 +10,16 @@
       nixpkgs,
       flake-utils,
     }:
+    let
+      mkModule = package: {
+        environment.systemPackages = [ package ];
+
+        security.pam.services."pam-okh".text = ''
+          auth sufficient ${package}/lib64/security/libpam_okh.so 1000
+          account sufficient ${package}/lib64/security/libpam_okh.so
+        '';
+      };
+    in
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -39,16 +49,21 @@
       # Installs the library into a NixOS system
       nixosModules.default =
         { pkgs, ... }:
-        let
-          pam-okh = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
-        in
-        {
-          environment.systemPackages = [ pam-okh ];
+        mkModule self.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-          security.pam.services."pam-okh".text = ''
-            auth sufficient ${pam-okh}/lib64/security/libpam_okh.so 1000
-            account sufficient ${pam-okh}/lib64/security/libpam_okh.so
+      # Development module pointing to local debug build output
+      nixosModules.dev =
+        project_dir:
+        { pkgs, ... }:
+        let
+          debugLibPath = "${project_dir}/target/debug/libpam_okh.so";
+
+          devPackage = pkgs.runCommandLocal "pam-okh-dev" { } ''
+            mkdir -p $out/lib/security $out/lib64/security
+            ln -s ${debugLibPath} $out/lib/libpam_okh.so
+            ln -s ${debugLibPath} $out/lib64/security/libpam_okh.so
           '';
-        };
+        in
+        mkModule devPackage;
     };
 }
