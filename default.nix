@@ -14,7 +14,7 @@ rustPlatform.buildRustPackage {
 
   cargoLock.lockFile = ./Cargo.lock;
 
-  # useNextest = true;
+  useNextest = true;
 
   postInstall = ''
     mkdir -p $out/lib64/security
@@ -26,8 +26,8 @@ rustPlatform.buildRustPackage {
   ];
 
   meta = {
-    description = "PAM - Okamžikové heslo";
-    homepage = "https://github.com/LastaApps/pam-okh";
+    description = cargoToml.package.description;
+    homepage = cargoToml.package.repository;
     license = lib.licenses.mit;
     maintainers = [ ];
   };

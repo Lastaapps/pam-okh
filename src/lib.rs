@@ -18,23 +18,17 @@ impl PamHooks for PamRandom {
     }
 
     fn sm_authenticate(pamh: &mut PamHandle, args: Vec<&CStr>, _flags: PamFlag) -> PamResultCode {
-        let delay = pam_try!(
-            args.first()
-                .map(|arg| -> Result<Duration, PamResultCode> {
-                    Ok(Duration::from_millis(
-                        arg.to_str()
-                            .map_err(|_e| PAM_AUTH_ERR)?
-                            .parse()
-                            .map_err(|_e| PAM_AUTH_ERR)?,
-                    ))
-                })
-                .unwrap_or(Ok(Duration::from_millis(0)))
-        );
+        let delay = pam_try!(args.first().map_or(
+            Ok(Duration::from_millis(0)),
+            |arg| -> Result<Duration, PamResultCode> {
+                let s = arg.to_str().map_err(|_e| PAM_AUTH_ERR)?;
+                let millis = s.parse().map_err(|_e| PAM_AUTH_ERR)?;
+                Ok(Duration::from_millis(millis))
+            }
+        ));
         let conv = match pamh.get_item::<Conv>() {
-            Ok(res) => match res {
-                Some(conv) => conv,
-                _ => todo!(),
-            },
+            Ok(Some(conv)) => conv,
+            Ok(None) => return PAM_AUTH_ERR,
             Err(err) => {
                 println!("Couldn't get pam_conv");
                 return err;
@@ -48,5 +42,13 @@ impl PamHooks for PamRandom {
             pam_try!(conv.send(PAM_TEXT_INFO, "Randomly failed"));
             PAM_AUTH_ERR
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn dummy_unit_test() {
+        assert_eq!(2 + 2, 4);
     }
 }

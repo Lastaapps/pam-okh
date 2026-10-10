@@ -39,6 +39,7 @@
             rust-analyzer
             clippy
             rustfmt
+            cargo-nextest
             # For testing
             pamtester
           ];
