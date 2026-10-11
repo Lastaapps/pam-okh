@@ -1,4 +1,4 @@
-# OTP PAM - Okamžikové heslo
+# PAM OTP - Okamžičná hesla
 
 This is **a toy** project aiming to implement OTP PAM module for Linux.
 The project is written in Rust and ready for NixOS.

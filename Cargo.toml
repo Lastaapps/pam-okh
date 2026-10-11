@@ -2,7 +2,7 @@
 name = "pam-okh"
 version = "0.1.0"
 edition = "2024"
-description = "PAM - Okamžikové heslo"
+description = "PAM OTP - Okamžičná hesla"
 license = "MIT"
 repository = "https://github.com/lastaapps/pam-okh"
 keywords = ["pam", "authentication", "otp"]
